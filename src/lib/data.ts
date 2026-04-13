@@ -50,6 +50,12 @@ export const categories: Category[] = [
     name: 'جلابيات العروب',
     slug: 'alaroob',
     description: 'طابع سعودي فاخر بلمسات جريئة ومتزنة.'
+  },
+  {
+    id: '6',
+    name: 'جلابيات العز',
+    slug: 'alizz',
+    description: 'مجموعة جديدة بطابع فخم وهيبة هادئة قيد التوسع.'
   }
 ]
 
@@ -182,4 +188,12 @@ export function getHeroProduct() {
 
 export function getProductBySlug(slug: string) {
   return products.find((product) => product.slug === slug)
+}
+
+export function getCategoryBySlug(slug: string) {
+  return categories.find((category) => category.slug === slug)
+}
+
+export function getProductsByCategorySlug(slug: string) {
+  return products.filter((product) => product.categorySlug === slug)
 }

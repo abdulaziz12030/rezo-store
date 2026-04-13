@@ -36,7 +36,7 @@ export default function HomePage() {
                 <div className="mt-1 text-sm text-stone-600">خصومات حالية</div>
               </div>
               <div className="rounded-3xl bg-white p-4 shadow-soft">
-                <div className="text-2xl font-bold text-brand-navy">5</div>
+                <div className="text-2xl font-bold text-brand-navy">{categories.length}</div>
                 <div className="mt-1 text-sm text-stone-600">مجموعات أساسية</div>
               </div>
               <div className="rounded-3xl bg-white p-4 shadow-soft">
@@ -68,13 +68,14 @@ export default function HomePage() {
       </section>
 
       <section className="container-shell py-20">
-        <SectionTitle eyebrow="الأقسام" title="مجموعات ريزو الأساسية" text="الصور الحالية محلية داخل مجلد public ويمكنك استبدالها لاحقًا مباشرة بنفس الأسماء أو تغيير المسارات من ملف data.ts." />
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        <SectionTitle eyebrow="الأقسام" title="مجموعات ريزو الأساسية" text="بالنقر على أي مجموعة ستفتح صفحة خاصة بها تحتوي منتجاتها الحالية أو رسالة تجهيز إذا كانت المجموعة جديدة." />
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-6">
           {categories.map((category) => (
-            <Link key={category.id} href="/products" className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-soft transition hover:-translate-y-1">
+            <Link key={category.id} href={`/collections/${category.slug}`} className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-soft transition hover:-translate-y-1 hover:border-brand-gold">
               <div className="gold-gradient h-2 rounded-full" />
               <h3 className="mt-6 text-xl font-bold text-brand-navy">{category.name}</h3>
               <p className="mt-3 text-sm leading-7 text-stone-600">{category.description}</p>
+              <p className="mt-5 text-sm font-semibold text-brand-gold">عرض المجموعة</p>
             </Link>
           ))}
         </div>
