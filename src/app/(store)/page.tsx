@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { categories, getFeaturedProducts, getHeroProduct, reviews, storeMeta } from '@/lib/data'
+import { categories, getFeaturedProducts, getHeroProduct, heroBanner, reviews, storeMeta } from '@/lib/data'
 import { ProductCard } from '@/components/product-card'
 import { SectionTitle } from '@/components/section-title'
 
@@ -13,11 +13,11 @@ export default function HomePage() {
       <section className="hero-grid border-b border-stone-200 bg-brand-sand/60">
         <div className="container-shell grid min-h-[75vh] items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
           <div className="space-y-7">
-            <p className="text-xs font-semibold tracking-[0.35em] text-brand-gold">REZO STYLE</p>
+            <p className="text-xs font-semibold tracking-[0.35em] text-brand-gold">{heroBanner.title}</p>
             <h1 className="max-w-xl text-4xl font-bold leading-tight text-brand-navy sm:text-5xl lg:text-6xl">
-              {storeMeta.tagline}
+              {heroBanner.subtitle}
             </h1>
-            <p className="max-w-xl text-base leading-8 text-stone-600 sm:text-lg">{hero.description}</p>
+            <p className="max-w-xl text-base leading-8 text-stone-600 sm:text-lg">{heroBanner.description}</p>
             <div className="flex flex-wrap gap-4">
               <Link href="/products" className="rounded-full bg-brand-navy px-7 py-4 text-sm font-bold text-white transition hover:opacity-90">
                 تسوقي الآن
@@ -48,7 +48,7 @@ export default function HomePage() {
           </div>
 
           <div className="relative h-[520px] overflow-hidden rounded-[36px] bg-white shadow-soft">
-            <Image src={hero.image} alt={hero.name} fill className="object-cover" priority />
+            <Image src={heroBanner.image} alt="Rezo Hero" fill className="object-cover" priority />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent p-8 text-white">
               <p className="text-xs tracking-[0.3em] text-brand-gold">القطعة المميزة</p>
               <h2 className="mt-3 text-2xl font-bold">{hero.name}</h2>
@@ -59,7 +59,7 @@ export default function HomePage() {
       </section>
 
       <section className="container-shell py-20">
-        <SectionTitle eyebrow="الأقسام" title="مجموعات ريزو الأساسية" text="المتجر المبدئي يضم المجموعات الظاهرة في متجرك الحالي، ويمكنك لاحقًا ربطها بقاعدة بيانات ولوحة تحكم ديناميكية." />
+        <SectionTitle eyebrow="الأقسام" title="مجموعات ريزو الأساسية" text="الصور الحالية محلية داخل مجلد public ويمكنك استبدالها لاحقًا مباشرة بنفس الأسماء أو تغيير المسارات من ملف data.ts." />
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
           {categories.map((category) => (
             <Link key={category.id} href="/products" className="rounded-[28px] border border-stone-200 bg-white p-6 shadow-soft transition hover:-translate-y-1">
@@ -73,7 +73,7 @@ export default function HomePage() {
 
       <section className="bg-stone-50 py-20">
         <div className="container-shell">
-          <SectionTitle eyebrow="تفاصيل قد تعجبك" title="منتجات مختارة للعرض" text="هذه نسخة أولية تحتوي على منتجات تجريبية مستوحاة من هيكل متجرك الحالي لتسريع البدء على GitHub وVercel." />
+          <SectionTitle eyebrow="تفاصيل قد تعجبك" title="منتجات مختارة للعرض" text="هذه نسخة أولية تحتوي على صور محلية افتراضية منظمة داخل المشروع لتسهيل التبديل السريع بصور منتجاتك الأصلية." />
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
