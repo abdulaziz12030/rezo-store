@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { categories, getFeaturedProducts, getHeroProduct, heroBanner, reviews, storeMeta } from '@/lib/data'
 import { ProductCard } from '@/components/product-card'
@@ -48,9 +47,19 @@ export default function HomePage() {
           </div>
 
           <div className="relative h-[520px] overflow-hidden rounded-[36px] bg-white shadow-soft">
-            <Image src={heroBanner.image} alt="Rezo Hero" fill className="object-cover" priority />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent p-8 text-white">
-              <p className="text-xs tracking-[0.3em] text-brand-gold">القطعة المميزة</p>
+            <video
+              className="absolute inset-0 h-full w-full object-cover"
+              src={heroBanner.videoUrl}
+              poster={heroBanner.posterImage}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
+            <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+              <p className="text-xs tracking-[0.3em] text-brand-gold">{heroBanner.videoLabel}</p>
               <h2 className="mt-3 text-2xl font-bold">{hero.name}</h2>
               <p className="mt-2 max-w-md text-sm leading-7 text-white/85">{hero.shortDescription}</p>
             </div>

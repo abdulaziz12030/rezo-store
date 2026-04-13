@@ -14,8 +14,10 @@ export const heroBanner = {
   title: 'REZO STYLE',
   subtitle: 'فخامة بلا تكلّف',
   description:
-    'نسخة مبدئية قابلة للتطوير لمتجر ريزو، مع صور محلية محفوظة داخل مجلد public لسهولة الاستبدال لاحقًا بصور منتجاتك الأصلية.',
-  image: '/images/hero/rezo-hero.svg'
+    'نسخة مبدئية قابلة للتطوير لمتجر ريزو مع بنر فيديو متحرك قريب من تجربة المتجر الأساسي، وصور منتجات محلية محفوظة داخل مجلد public.',
+  posterImage: '/images/hero/rezo-hero.svg',
+  videoUrl: 'https://cdn.imgchest.com/files/acdc9eb6faaf.mp4',
+  videoLabel: 'فيديو العرض الرئيسي'
 }
 
 export const categories: Category[] = [
