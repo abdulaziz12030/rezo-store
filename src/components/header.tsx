@@ -14,7 +14,7 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/90 backdrop-blur">
       <div className="container-shell flex h-20 items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <button className="rounded-full border border-stone-300 p-2 text-stone-600 lg:hidden">
+          <button className="rounded-full border border-stone-300 p-2 text-stone-600 lg:hidden" type="button">
             <Menu className="h-5 w-5" />
           </button>
           <Link href="/" className="text-lg font-bold tracking-[0.18em] text-brand-navy">

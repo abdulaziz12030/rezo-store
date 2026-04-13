@@ -1,11 +1,15 @@
 import Link from 'next/link'
-import { categories, getFeaturedProducts, getHeroProduct, heroBanner, reviews, storeMeta } from '@/lib/data'
+import { getCategories, getFeaturedProducts, getProducts, heroBanner, reviews, storeMeta } from '@/lib/catalog'
 import { ProductCard } from '@/components/product-card'
 import { SectionTitle } from '@/components/section-title'
 
-export default function HomePage() {
-  const hero = getHeroProduct()
-  const featuredProducts = getFeaturedProducts()
+export default async function HomePage() {
+  const [categories, featuredProducts, allProducts] = await Promise.all([
+    getCategories(),
+    getFeaturedProducts(),
+    getProducts()
+  ])
+  const hero = featuredProducts[0] ?? allProducts[0]
 
   return (
     <main>
@@ -60,8 +64,8 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
             <div className="absolute inset-x-0 bottom-0 p-8 text-white">
               <p className="text-xs tracking-[0.3em] text-brand-gold">{heroBanner.videoLabel}</p>
-              <h2 className="mt-3 text-2xl font-bold">{hero.name}</h2>
-              <p className="mt-2 max-w-md text-sm leading-7 text-white/85">{hero.shortDescription}</p>
+              <h2 className="mt-3 text-2xl font-bold">{hero?.name ?? 'REZO STYLE'}</h2>
+              <p className="mt-2 max-w-md text-sm leading-7 text-white/85">{hero?.shortDescription ?? 'متجر ريزو بتجربة عرض مرنة قابلة للتطوير.'}</p>
             </div>
           </div>
         </div>
@@ -83,7 +87,7 @@ export default function HomePage() {
 
       <section className="bg-stone-50 py-20">
         <div className="container-shell">
-          <SectionTitle eyebrow="تفاصيل قد تعجبك" title="منتجات مختارة للعرض" text="هذه نسخة أولية تحتوي على صور محلية افتراضية منظمة داخل المشروع لتسهيل التبديل السريع بصور منتجاتك الأصلية." />
+          <SectionTitle eyebrow="تفاصيل قد تعجبك" title="منتجات مختارة للعرض" text="المنتجات هنا تقرأ من قاعدة البيانات إذا كان ربط Supabase مفعّل، وإلا ستعرض البيانات المحلية الحالية." />
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
