@@ -119,10 +119,10 @@ export async function getCategories(): Promise<Category[]> {
       .order('sort_order')
       .order('name')
 
-    if (error || !data?.length) return fallbackCategories
-    return data.map(mapDbCategory)
+    if (error) return []
+    return (data ?? []).map(mapDbCategory)
   } catch {
-    return fallbackCategories
+    return []
   }
 }
 
@@ -138,10 +138,10 @@ export async function getCategoryBySlug(slug: string): Promise<Category | undefi
       .eq('is_active', true)
       .maybeSingle()
 
-    if (error || !data) return getFallbackCategoryBySlug(slug)
+    if (error || !data) return undefined
     return mapDbCategory(data)
   } catch {
-    return getFallbackCategoryBySlug(slug)
+    return undefined
   }
 }
 
@@ -156,10 +156,10 @@ export async function getProducts(): Promise<Product[]> {
       .eq('is_active', true)
       .order('created_at', { ascending: false })
 
-    if (error || !data?.length) return fallbackProducts
-    return (data as unknown as DbProduct[]).map(mapDbProduct)
+    if (error) return []
+    return ((data ?? []) as unknown as DbProduct[]).map(mapDbProduct)
   } catch {
-    return fallbackProducts
+    return []
   }
 }
 
@@ -189,10 +189,10 @@ export async function getProductBySlug(slug: string): Promise<Product | undefine
       .eq('is_active', true)
       .maybeSingle()
 
-    if (error || !data) return getFallbackProductBySlug(slug)
+    if (error || !data) return undefined
     return mapDbProduct(data as unknown as DbProduct)
   } catch {
-    return getFallbackProductBySlug(slug)
+    return undefined
   }
 }
 
