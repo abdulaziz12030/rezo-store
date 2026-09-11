@@ -60,6 +60,8 @@ export async function createCheckoutOrder(formData: FormData) {
 
   if (error) {
     const message = error.message || ''
+    if (message.includes('shipping_not_configured')) checkoutError('shipping-not-configured')
+    if (message.includes('shipping_provider_not_ready')) checkoutError('shipping-provider-not-ready')
     if (message.includes('insufficient_stock')) checkoutError('insufficient-stock')
     if (message.includes('product_unavailable')) checkoutError('product-unavailable')
     if (message.includes('variant_unavailable')) checkoutError('variant-unavailable')
