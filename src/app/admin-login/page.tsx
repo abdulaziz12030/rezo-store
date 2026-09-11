@@ -8,7 +8,8 @@ const errorMessages: Record<string, string> = {
 }
 
 const setupMessages: Record<string, string> = {
-  ready: 'تم إنشاء حساب Owner الأول. يمكنك تسجيل الدخول الآن.',
+  ready: 'تم تفعيل حساب Owner وتعيين كلمة المرور. يمكنك تسجيل الدخول الآن.',
+  invited: 'تم إرسال دعوة Owner إلى البريد. افتح رسالة Supabase وأكمل التفعيل وتعيين كلمة المرور.',
   closed: 'تمت تهيئة الإدارة مسبقًا، وصفحة إنشاء المالك الأول مغلقة.'
 }
 
