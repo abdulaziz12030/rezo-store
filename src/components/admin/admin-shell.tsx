@@ -1,10 +1,13 @@
 import Link from 'next/link'
-import { LayoutGrid, Package, Shapes } from 'lucide-react'
+import { LayoutGrid, LogOut, Package, Settings, Shapes, ShoppingBag } from 'lucide-react'
+import { adminLogout } from '@/lib/actions/admin-auth'
 
 const items = [
   { href: '/admin', label: 'الرئيسية', icon: LayoutGrid },
+  { href: '/admin/orders', label: 'الطلبات', icon: ShoppingBag },
   { href: '/admin/categories', label: 'التصنيفات', icon: Shapes },
-  { href: '/admin/products', label: 'المنتجات', icon: Package }
+  { href: '/admin/products', label: 'المنتجات', icon: Package },
+  { href: '/admin/settings', label: 'الإعدادات', icon: Settings }
 ]
 
 export function AdminShell({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
@@ -12,7 +15,7 @@ export function AdminShell({ title, description, children }: { title: string; de
     <main className="bg-stone-50 py-10">
       <div className="container-shell grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="rounded-[28px] bg-white p-5 shadow-soft">
-          <p className="text-xs font-semibold tracking-[0.35em] text-brand-gold">REZO ADMIN</p>
+          <p className="text-xs font-semibold tracking-[0.35em] text-brand-gold">REZO STYLE ADMIN</p>
           <h2 className="mt-3 text-2xl font-bold text-brand-navy">لوحة التحكم</h2>
           <div className="mt-6 space-y-2">
             {items.map((item) => {
@@ -30,8 +33,14 @@ export function AdminShell({ title, description, children }: { title: string; de
             })}
           </div>
           <div className="mt-6 rounded-2xl bg-brand-sand/70 p-4 text-sm leading-7 text-stone-700">
-            النسخة الحالية تجهز لك إدارة المنتجات والتصنيفات وربط صور المنتجات عبر Supabase Storage.
+            إدارة الكتالوج والخيارات والمخزون والطلبات والإعدادات تتم عبر جلسة إدارة موثقة وسجل تدقيق للإجراءات الحساسة.
           </div>
+          <form action={adminLogout} className="mt-5">
+            <button className="flex w-full items-center justify-between rounded-2xl border border-stone-200 px-4 py-3 text-sm font-semibold text-stone-600 transition hover:border-red-200 hover:text-red-600">
+              <span>تسجيل الخروج</span>
+              <LogOut className="h-4 w-4" />
+            </button>
+          </form>
         </aside>
 
         <section className="space-y-6">

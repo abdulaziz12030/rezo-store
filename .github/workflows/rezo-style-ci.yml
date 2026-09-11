@@ -1,0 +1,64 @@
+name: REZO Style CI
+
+on:
+  push:
+    branches:
+      - feature/rezo-style-core
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Next.js build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Build
+        run: npm run build
+
+  edge-functions:
+    name: Supabase Edge Functions check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install npm dependencies for Deno npm imports
+        run: npm install
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check Moyasar Edge Functions
+        run: |
+          deno check supabase/functions/rezo-style-create-moyasar-invoice/index.ts
+          deno check supabase/functions/rezo-style-moyasar-callback/index.ts
+          deno check supabase/functions/rezo-style-reconcile-moyasar-invoice/index.ts
