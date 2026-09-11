@@ -9,8 +9,17 @@ import {
   storeMeta,
   heroBanner
 } from '@/lib/data'
-import type { Category, DbCategory, DbProduct, Product } from '@/types'
-import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabase/server'
+import type {
+  Category,
+  DbCategory,
+  DbProduct,
+  DbProductImage,
+  DbProductVariant,
+  Product,
+  ProductImage,
+  ProductVariant
+} from '@/types'
+import { getSupabaseAdmin, getSupabasePublic, isSupabaseConfigured } from '@/lib/supabase/server'
 
 function normalizeNumber(value: number | string | null | undefined) {
   if (typeof value === 'number') return value
@@ -27,7 +36,45 @@ function mapDbCategory(category: DbCategory): Category {
   }
 }
 
+function mapImage(image: DbProductImage): ProductImage {
+  return {
+    id: image.id,
+    url: image.image_url,
+    altText: image.alt_text ?? undefined,
+    isPrimary: Boolean(image.is_primary),
+    sortOrder: image.sort_order ?? 0
+  }
+}
+
+function mapVariant(variant: DbProductVariant): ProductVariant {
+  return {
+    id: variant.id,
+    sku: variant.sku,
+    size: variant.size ?? undefined,
+    color: variant.color ?? undefined,
+    optionLabel: variant.option_label ?? undefined,
+    priceOverride: variant.price_override == null ? undefined : normalizeNumber(variant.price_override),
+    compareAtPrice: variant.compare_at_price == null ? undefined : normalizeNumber(variant.compare_at_price),
+    stock: variant.stock ?? 0,
+    lowStockThreshold: variant.low_stock_threshold ?? 2,
+    weightGrams: variant.weight_grams ?? undefined,
+    isActive: variant.is_active
+  }
+}
+
 function mapDbProduct(product: DbProduct): Product {
+  const images = [...(product.product_images ?? [])]
+    .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)) || (a.sort_order ?? 0) - (b.sort_order ?? 0))
+    .map(mapImage)
+
+  const variants = (product.product_variants ?? [])
+    .filter((variant) => variant.is_active)
+    .map(mapVariant)
+
+  const variantColors = variants.map((variant) => variant.color).filter((value): value is string => Boolean(value))
+  const availableStock = variants.length ? variants.reduce((sum, variant) => sum + variant.stock, 0) : (product.stock ?? 0)
+  const primaryImage = images[0]?.url ?? product.image_url ?? '/images/products/alreem-camel.svg'
+
   return {
     id: product.id,
     name: product.name,
@@ -38,21 +85,40 @@ function mapDbProduct(product: DbProduct): Product {
     description: product.description ?? '',
     price: normalizeNumber(product.price),
     compareAtPrice: product.compare_at_price ? normalizeNumber(product.compare_at_price) : undefined,
-    stock: product.stock ?? 0,
+    stock: availableStock,
     rating: 5,
     reviewCount: 0,
     featured: product.is_featured,
-    image: product.image_url ?? '/images/products/alreem-camel.svg',
-    colors: []
+    image: primaryImage,
+    colors: [...new Set(variantColors)],
+    sku: product.sku ?? undefined,
+    trackInventory: product.track_inventory ?? true,
+    allowBackorder: product.allow_backorder ?? false,
+    lowStockThreshold: product.low_stock_threshold ?? 2,
+    images,
+    variants
   }
 }
+
+const catalogSelect = `
+  *,
+  categories(id, name, slug, description, is_active, sort_order),
+  product_images(id, product_id, image_url, alt_text, is_primary, sort_order),
+  product_variants(id, product_id, sku, size, color, option_label, price_override, compare_at_price, cost_price, stock, low_stock_threshold, weight_grams, is_active)
+`
 
 export async function getCategories(): Promise<Category[]> {
   if (!isSupabaseConfigured()) return fallbackCategories
 
   try {
-    const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase.from('categories').select('*').order('name')
+    const supabase = getSupabasePublic()
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .order('name')
+
     if (error || !data?.length) return fallbackCategories
     return data.map(mapDbCategory)
   } catch {
@@ -64,8 +130,14 @@ export async function getCategoryBySlug(slug: string): Promise<Category | undefi
   if (!isSupabaseConfigured()) return getFallbackCategoryBySlug(slug)
 
   try {
-    const supabase = getSupabaseAdmin()
-    const { data, error } = await supabase.from('categories').select('*').eq('slug', slug).maybeSingle()
+    const supabase = getSupabasePublic()
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle()
+
     if (error || !data) return getFallbackCategoryBySlug(slug)
     return mapDbCategory(data)
   } catch {
@@ -77,14 +149,15 @@ export async function getProducts(): Promise<Product[]> {
   if (!isSupabaseConfigured()) return fallbackProducts
 
   try {
-    const supabase = getSupabaseAdmin()
+    const supabase = getSupabasePublic()
     const { data, error } = await supabase
       .from('products')
-      .select('*, categories(id, name, slug, description)')
+      .select(catalogSelect)
+      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (error || !data?.length) return fallbackProducts
-    return data.map(mapDbProduct)
+    return (data as unknown as DbProduct[]).map(mapDbProduct)
   } catch {
     return fallbackProducts
   }
@@ -107,8 +180,20 @@ export async function getProductsByCategorySlug(slug: string): Promise<Product[]
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   if (!isSupabaseConfigured()) return getFallbackProductBySlug(slug)
 
-  const all = await getProducts()
-  return all.find((product) => product.slug === slug)
+  try {
+    const supabase = getSupabasePublic()
+    const { data, error } = await supabase
+      .from('products')
+      .select(catalogSelect)
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (error || !data) return getFallbackProductBySlug(slug)
+    return mapDbProduct(data as unknown as DbProduct)
+  } catch {
+    return getFallbackProductBySlug(slug)
+  }
 }
 
 export async function getAdminCategories(): Promise<DbCategory[]> {
@@ -155,11 +240,11 @@ export async function getAdminProducts(): Promise<DbProduct[]> {
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(id, name, slug, description)')
+    .select(catalogSelect)
     .order('created_at', { ascending: false })
 
   if (error) throw new Error(error.message)
-  return data ?? []
+  return (data ?? []) as unknown as DbProduct[]
 }
 
 export async function getAdminCategoryById(id: string): Promise<DbCategory | null> {
@@ -198,12 +283,12 @@ export async function getAdminProductById(id: string): Promise<DbProduct | null>
   const supabase = getSupabaseAdmin()
   const { data, error } = await supabase
     .from('products')
-    .select('*, categories(id, name, slug, description)')
+    .select(catalogSelect)
     .eq('id', id)
     .maybeSingle()
 
   if (error) throw new Error(error.message)
-  return data
+  return data as unknown as DbProduct | null
 }
 
 export { reviews, storeMeta, heroBanner }
