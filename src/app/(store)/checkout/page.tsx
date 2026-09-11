@@ -2,12 +2,15 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentCart } from '@/lib/cart'
 import { createCheckoutOrder } from '@/lib/actions/checkout'
+import { calculateShippingTotal, getShippingSettings, shippingSummary } from '@/lib/store-settings'
 
 const errorMessages: Record<string, string> = {
   'store-not-configured': 'المتجر غير متصل بقاعدة البيانات.',
   'cart-empty': 'السلة فارغة ولا يمكن إنشاء طلب.',
   'missing-details': 'أكمل الاسم والجوال والمدينة والحي والشارع.',
   'invalid-email': 'صيغة البريد الإلكتروني غير صحيحة.',
+  'shipping-not-configured': 'الشحن غير مهيأ بعد. لن يتم إنشاء طلب قبل تحديد تكلفة الشحن بصورة صحيحة.',
+  'shipping-provider-not-ready': 'شركة الشحن المحددة غير جاهزة للتسعير المباشر بعد.',
   'insufficient-stock': 'تغير المخزون أثناء إتمام الطلب. راجع السلة والكمية المتاحة.',
   'product-unavailable': 'أحد المنتجات لم يعد متاحًا.',
   'variant-unavailable': 'أحد المقاسات أو الألوان لم يعد متاحًا.',
@@ -18,9 +21,21 @@ const errorMessages: Record<string, string> = {
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams
-  const cart = await getCurrentCart()
+  const [cart, shipping] = await Promise.all([getCurrentCart(), getShippingSettings()])
 
   if (!cart?.items.length) redirect('/cart')
+
+  let shippingTotal: number | null = null
+  if (shipping.enabled) {
+    try {
+      shippingTotal = calculateShippingTotal(cart.subtotal, shipping)
+    } catch {
+      shippingTotal = null
+    }
+  }
+
+  const shippingReady = shipping.enabled && shippingTotal !== null
+  const expectedGrandTotal = Math.max(0, cart.subtotal - cart.discountTotal + (shippingTotal ?? 0))
 
   return (
     <main className="container-shell py-16">
@@ -28,7 +43,7 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
         <div>
           <p className="text-xs font-semibold tracking-[0.3em] text-brand-gold">REZO STYLE</p>
           <h1 className="mt-2 text-3xl font-bold text-brand-navy">إتمام الطلب</h1>
-          <p className="mt-3 text-sm leading-7 text-stone-600">سنراجع السعر والمخزون مرة أخيرة على السيرفر قبل إنشاء الطلب وحجز القطع.</p>
+          <p className="mt-3 text-sm leading-7 text-stone-600">سنراجع السعر والمخزون والشحن مرة أخيرة على السيرفر قبل إنشاء الطلب وحجز القطع.</p>
         </div>
         <Link href="/cart" className="text-sm font-bold text-brand-navy underline underline-offset-4">العودة للسلة</Link>
       </div>
@@ -36,6 +51,13 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
       {error ? (
         <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           {errorMessages[error] ?? errorMessages['checkout-failed']}
+        </div>
+      ) : null}
+
+      {!shippingReady ? (
+        <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-7 text-amber-900">
+          <div className="font-bold">إتمام الطلب متوقف مؤقتًا حتى تهيئة الشحن.</div>
+          <div className="mt-1">لن نسمح بإنشاء طلب أو الانتقال للدفع بإجمالي ناقص أو غير مؤكد.</div>
         </div>
       ) : null}
 
@@ -90,10 +112,15 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
             </label>
 
             <div className="sm:col-span-2 rounded-2xl bg-brand-sand/60 p-4 text-sm leading-7 text-stone-700">
-              عند الضغط على إنشاء الطلب سيتم حجز المخزون فورًا. ربط الدفع الإلكتروني وميسر سيكون المرحلة التالية على نفس مسار الطلب.
+              عند إنشاء الطلب يعيد السيرفر التحقق من الأسعار والمخزون، ثم يحسب الشحن ويثبت الإجمالي ويحجز المخزون لمدة الدفع.
             </div>
 
-            <button className="rounded-full bg-brand-navy px-7 py-4 text-sm font-bold text-white sm:col-span-2">إنشاء الطلب والمتابعة للدفع</button>
+            <button
+              disabled={!shippingReady}
+              className="rounded-full bg-brand-navy px-7 py-4 text-sm font-bold text-white sm:col-span-2 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {shippingReady ? 'إنشاء الطلب والمتابعة للدفع' : 'بانتظار تهيئة الشحن'}
+            </button>
           </form>
         </section>
 
@@ -113,11 +140,16 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
               </div>
             ))}
           </div>
+
+          <div className="mt-5 rounded-2xl bg-white/70 p-4 text-xs leading-6 text-stone-600">
+            {shippingSummary(shipping)}
+          </div>
+
           <div className="mt-5 space-y-3 text-sm text-stone-700">
             <div className="flex justify-between"><span>الإجمالي الفرعي</span><span>{cart.subtotal.toFixed(2)} ر.س</span></div>
             {cart.discountTotal ? <div className="flex justify-between"><span>الخصم</span><span>- {cart.discountTotal.toFixed(2)} ر.س</span></div> : null}
-            <div className="flex justify-between"><span>الشحن</span><span>{cart.shippingTotal ? `${cart.shippingTotal.toFixed(2)} ر.س` : 'سيُحدد لاحقًا'}</span></div>
-            <div className="flex justify-between border-t border-stone-300 pt-3 text-base font-bold text-brand-navy"><span>الإجمالي الحالي</span><span>{cart.grandTotal.toFixed(2)} ر.س</span></div>
+            <div className="flex justify-between"><span>الشحن</span><span>{shippingTotal !== null ? `${shippingTotal.toFixed(2)} ر.س` : 'غير مهيأ'}</span></div>
+            <div className="flex justify-between border-t border-stone-300 pt-3 text-base font-bold text-brand-navy"><span>الإجمالي المتوقع</span><span>{shippingReady ? `${expectedGrandTotal.toFixed(2)} ر.س` : '—'}</span></div>
           </div>
         </aside>
       </div>
