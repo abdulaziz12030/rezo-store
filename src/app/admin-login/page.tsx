@@ -3,13 +3,13 @@ import { adminLogin } from '@/lib/actions/admin-auth'
 
 const errorMessages: Record<string, string> = {
   missing: 'أدخل البريد الإلكتروني وكلمة المرور.',
-  invalid: 'بيانات الدخول غير صحيحة.',
+  invalid: 'بيانات الدخول غير صحيحة أو البريد لم يتم تأكيده بعد.',
   unauthorized: 'هذا الحساب لا يملك صلاحية إدارة REZO STYLE.'
 }
 
 const setupMessages: Record<string, string> = {
   ready: 'تم تفعيل حساب Owner وتعيين كلمة المرور. يمكنك تسجيل الدخول الآن.',
-  invited: 'تم إرسال دعوة Owner إلى البريد. افتح رسالة Supabase وأكمل التفعيل وتعيين كلمة المرور.',
+  'confirmation-sent': 'تم إنشاء Owner وإرسال رسالة تحقق إلى البريد. افتح رسالة Supabase واضغط رابط التأكيد، ثم ارجع لتسجيل الدخول.',
   closed: 'تمت تهيئة الإدارة مسبقًا، وصفحة إنشاء المالك الأول مغلقة.'
 }
 
@@ -42,7 +42,7 @@ export default async function AdminLoginPage({
         <form action={adminLogin} className="mt-8 grid gap-5">
           <label className="grid gap-2 text-sm font-medium text-stone-700">
             البريد الإلكتروني
-            <input name="email" type="email" autoComplete="email" required className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-brand-gold" />
+            <input name="email" type="email" autoComplete="email" required defaultValue="style@rezo.sa" className="rounded-2xl border border-stone-300 px-4 py-3 outline-none focus:border-brand-gold" />
           </label>
 
           <label className="grid gap-2 text-sm font-medium text-stone-700">
