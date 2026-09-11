@@ -19,7 +19,8 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
 
   const images = product.images?.length ? product.images : [{ id: 'primary', url: product.image, altText: product.name }]
   const variants = product.variants ?? []
-  const canOrder = product.allowBackorder || product.stock > 0
+  const inventoryTracked = product.trackInventory !== false
+  const canOrder = !inventoryTracked || product.allowBackorder || product.stock > 0
 
   return (
     <main className="bg-stone-50 py-16">
@@ -63,7 +64,7 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
               <span className="font-bold text-brand-navy">الوصف المختصر:</span> {product.shortDescription || '—'}
             </div>
             <div>
-              <span className="font-bold text-brand-navy">المخزون:</span> {product.stock} قطعة
+              <span className="font-bold text-brand-navy">المخزون:</span> {inventoryTracked ? `${product.stock} قطعة` : 'متاح بدون تتبع كمي'}
             </div>
             <div>
               <span className="font-bold text-brand-navy">الألوان:</span> {product.colors.join('، ') || 'بحسب الخيار'}
@@ -88,10 +89,11 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                   <option value="" disabled>اختيار المقاس / اللون</option>
                   {variants.map((variant) => {
                     const price = variant.priceOverride ?? product.price
-                    const unavailable = !product.allowBackorder && variant.stock <= 0
+                    const unavailable = inventoryTracked && !product.allowBackorder && variant.stock <= 0
+                    const stockLabel = inventoryTracked ? (unavailable ? ' — نفد' : ` — ${variant.stock} متاح`) : ''
                     return (
                       <option key={variant.id} value={variant.id} disabled={unavailable}>
-                        {variantLabel(variant) || variant.sku} — {price.toFixed(2)} ر.س{unavailable ? ' — نفد' : ` — ${variant.stock} متاح`}
+                        {variantLabel(variant) || variant.sku} — {price.toFixed(2)} ر.س{stockLabel}
                       </option>
                     )
                   })}
