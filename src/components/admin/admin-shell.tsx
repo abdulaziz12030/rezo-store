@@ -1,12 +1,13 @@
 import Link from 'next/link'
-import { LayoutGrid, LogOut, Package, Shapes, ShoppingBag } from 'lucide-react'
+import { LayoutGrid, LogOut, Package, Settings, Shapes, ShoppingBag } from 'lucide-react'
 import { adminLogout } from '@/lib/actions/admin-auth'
 
 const items = [
   { href: '/admin', label: 'الرئيسية', icon: LayoutGrid },
   { href: '/admin/orders', label: 'الطلبات', icon: ShoppingBag },
   { href: '/admin/categories', label: 'التصنيفات', icon: Shapes },
-  { href: '/admin/products', label: 'المنتجات', icon: Package }
+  { href: '/admin/products', label: 'المنتجات', icon: Package },
+  { href: '/admin/settings', label: 'الإعدادات', icon: Settings }
 ]
 
 export function AdminShell({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
@@ -32,7 +33,7 @@ export function AdminShell({ title, description, children }: { title: string; de
             })}
           </div>
           <div className="mt-6 rounded-2xl bg-brand-sand/70 p-4 text-sm leading-7 text-stone-700">
-            إدارة الكتالوج والخيارات والمخزون والطلبات تتم عبر جلسة إدارة موثقة وسجل تدقيق للإجراءات الحساسة.
+            إدارة الكتالوج والخيارات والمخزون والطلبات والإعدادات تتم عبر جلسة إدارة موثقة وسجل تدقيق للإجراءات الحساسة.
           </div>
           <form action={adminLogout} className="mt-5">
             <button className="flex w-full items-center justify-between rounded-2xl border border-stone-200 px-4 py-3 text-sm font-semibold text-stone-600 transition hover:border-red-200 hover:text-red-600">
